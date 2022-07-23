@@ -11,7 +11,6 @@
     <title>歌曲</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -71,6 +70,7 @@
 <script>
     var aaa = document.querySelectorAll('a');
     aaa[aaa.length - 1].remove();
+    var audio = document.getElementById('audio');
     document.getElementById('search_start').onclick = function() {
         var a = document.getElementById('search_input').value;
         if (a) {
@@ -112,9 +112,10 @@
 
     function getData(a) {
         console.log(a);
-        $('#audio').attr('src', a.data.play_url);
-        $('.bg .right h1.title').html(a.data.song_name);
-        $('.bg .right .message .zhuanj span').append(a.data.album_name);
+        audio.setAttribute('src', a.data.play_url);
+        document.querySelector('.bg .right h1.title').innerHTML = a.data.song_name;
+        document.title = a.data.audio_name;
+        document.querySelector('.bg .right .message .zhuanj span').innerHTML += a.data.album_name;
         var author_b = '';
         for (var i = 0; i < a.data.authors.length; i++) {
             if (i == a.data.authors.length - 1) {
@@ -123,33 +124,37 @@
                 author_b += a.data.authors[i].author_name + '&#12289;';
             }
         }
-        $('.bg .right .message .singer span').append(author_b);
-        $('.img_bg').attr('src', a.data.img);
+        document.querySelector('.bg .right .message .singer span').innerHTML += author_b;
+        document.querySelectorAll('.img_bg').forEach(function(e) {
+            e.src = a.data.img
+        });
         createLrcObj(a.data.lyrics);
         console.log(oLRC);
         for (var i = 0; i < oLRC.ms.length; i++) {
-            $('.bg .right .gclist ul').append('<li>' + oLRC.ms[i].c + '</li>')
+            document.querySelector('.bg .right .gclist ul').innerHTML += '<li>' + oLRC.ms[i].c + '</li>';
         }
-        $('.bg .right .gclist ul li').eq(0).addClass('onc');
-
+        document.querySelectorAll('.bg .right .gclist ul li')[0].classList.add('onc');
+        if (a.data.has_privilege && a.data.privilege == 10) {
+            alert('\u7531\u4e8e\u8be5\u6b4c\u66f2\u5728\u9177\u72d7\u97f3\u4e50\u5e73\u53f0\u4e0a\u4e3a\u4ed8\u8d39\u6536\u542c\uff0c\u53ea\u80fd\u8bd5\u542c1\u5206\u949f\uff0c\u6240\u4ee5\u5728\u8fd9\u91cc\uff0c\u6211\u4eec\u4e5f\u53ea\u80fd\u83b7\u53d6\u5230\u4e00\u5206\u949f\u7684\u97f3\u4e50\uff0c\u5982\u679c\u60f3\u542c\u6574\u9996\u6b4c\uff0c\u8bf7\u4f60\u4e0b\u8f7d\u9177\u72d7\u97f3\u4e50APP\u3002')
+        }
 
     }
 
     function download() {
-        window.open($('#audio').attr('src'));
+        window.open(audio.getAttribute('src'));
     }
-    $('.toggleplay').click(function() {
-        var isplay = !document.getElementById('audio').paused;
+    document.querySelector('.toggleplay').onclick = function() {
+        var isplay = !audio.paused;
         if (isplay) {
             audio.pause();
-            $(this).addClass('bi-play');
-            $(this).removeClass('bi-pause');
+            this.classList.add('bi-play');
+            this.classList.remove('bi-pause');
         } else {
-            $(this).removeClass('bi-play');
-            $(this).addClass('bi-pause');
+            this.classList.remove('bi-play');
+            this.classList.add('bi-pause');
             audio.play();
         }
-    });
+    };
     updateTime();
 
     function updateTime() {
@@ -157,8 +162,8 @@
             var time = parseInt(audio.currentTime);
             var stime = queryTime(time);
             var mstime = audio.currentTime;
-            $('div.time span.z').html(stime);
-            $('#timerange').val(time / audio.duration * 100);
+            document.querySelector('div.time span.z').innerHTML = stime;
+            document.querySelector('#timerange').value = time / audio.duration * 100;
             var nowa = 0;
             for (var i = 0; i < oLRC.ms.length; i++) {
                 try {
@@ -175,10 +180,12 @@
             }
             nowc = nowa;
             var pds = ys - nowc * 41;
-            $('.bg .right .gclist ul li').removeClass('onc');
-            $('.bg .right .gclist ul li').eq(nowc).addClass('onc');
-            $('.bg .right .gclist ul li').css({
-                'top': pds + 'px'
+            document.querySelectorAll('.bg .right .gclist ul li').forEach(function(e) {
+                e.classList.remove('onc')
+            });
+            document.querySelectorAll('.bg .right .gclist ul li')[nowc].classList.add('onc');
+            document.querySelectorAll('.bg .right .gclist ul li').forEach(function(e) {
+                e.style.top = pds + 'px'
             });
             updateTime();
         }, 1000);
@@ -195,18 +202,18 @@
         }
         return m + ':' + s;
     }
-    var audio = document.getElementById('audio');
+
 
     audio.oncanplay = function() {
         a = queryTime(audio.duration);
-        $('div.time span.s').html(a);
+        document.querySelector('div.time span.s').innerHTML = a;
     }
-    $('#timerange').change(function() {
-        audio.currentTime = ($(this).val() / 100) * document.getElementById('audio').duration;
-    });
+    document.querySelector('#timerange').onchange = function() {
+        audio.currentTime = (this.value / 100) * document.getElementById('audio').duration;
+    };
     audio.onended = function() {
-        $('.toggleplay').removeClass('bi-pause');
-        $('.toggleplay').addClass('bi-play');
+        document.querySelector('.toggleplay').classList.remove('bi-pause');
+        document.querySelector('.toggleplay').classList.add('bi-play');
         audio.currentTime = 0;
     }
 
