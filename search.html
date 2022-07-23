@@ -2,16 +2,18 @@
 <html lang="zh-cn">
 <script>
     var url = decodeURI(window.location.href);
+    if (url.indexOf('?s=') == -1 || url.substring(url.indexOf('?s=') + 3, url.length).trim() == "") {
+        window.location.href = 'index.html';
+    }
 </script>
 
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歌曲</title>
+    <title>搜索</title>
     <link href="https://cdn.bootcdn.net/ajax/libs/bootstrap-icons/1.8.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="index.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -26,32 +28,77 @@
             <div class="search">
                 <input type="text" id='search_input'><button id='search_start' class='bi bi-search'></button>
             </div>
-            <div class="bg">
-                <div class="left">
-                    <img src="" alt="1234" class="img_bg">
-                    <div class="download bi bi-download" onclick='download();'>下载这首音乐</div>
-                </div>
-                <div class="right">
-                    <h1 class="title"></h1>
-                    <div class="message">
-                        <p class="singer">歌手：<span></span></p>
-                        <p class="zhuanj">专辑：<span></span></p>
+            <div class="songlist">
+                <ul>
+                    <div class="bg">
+                        <div class='mspin'>
+                            <div>
+                                <div></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="gclist">
-                        <ul></ul>
-                    </div>
-                    <div class="downmini bi bi-download" onclick='download();'></div>
-                </div>
-            </div>
-            <div class="bar">
-                <img src="" alt="1234" class="img_bg">
-                <div class="cz">
-                    <input type="range" name="" id="timerange" min='0' max='100' value="0">
-                    <div class="czs">
-                        <div class="toggleplay bi bi-pause"></div>
-                        <div class="time"><span class="z">00:00</span>/<span class="s">00:00</span></div>
-                    </div>
-                </div>
+                    <style>
+                        .bg {
+                            width: 100%;
+                            position: relative;
+                        }
+                        
+                        .mspin {
+                            width: 36px;
+                            height: 36px;
+                            overflow: hidden;
+                            -webkit-animation: mspin-rotate 1568.63ms infinite linear;
+                            -moz-animation: mspin-rotate 1568.63ms infinite linear;
+                            animation: mspin-rotate 1568.63ms infinite linear;
+                            transform: scale(1.5) translateX(-50%);
+                            position: absolute;
+                            left: 50%;
+                        }
+                        
+                        .mspin>div {
+                            -webkit-animation: mspin-revrot 5332ms infinite steps(4);
+                            -moz-animation: mspin-revrot 5332ms infinite steps(4);
+                            animation: mspin-revrot 5332ms infinite steps(4);
+                        }
+                        
+                        .mspin>div>div {
+                            background-image: url(https://www.gstatic.com/images/icons/material/anim/mspin/mspin_googcolor_medium.svg);
+                            background-size: 100%;
+                            width: 11664px;
+                            height: 36px;
+                            -webkit-animation: mspin-medium-film 5332ms infinite steps(324);
+                            -moz-animation: mspin-medium-film 5332ms infinite steps(324);
+                            animation: mspin-medium-film 5332ms infinite steps(324);
+                        }
+                        
+                        @keyframes mspin-rotate {
+                            0% {
+                                transform: rotate(0deg) scale(1.5);
+                            }
+                            100% {
+                                transform: rotate(360deg) scale(1.5);
+                            }
+                        }
+                        
+                        @keyframes mspin-revrot {
+                            0% {
+                                transform: rotate(0deg);
+                            }
+                            100% {
+                                transform: rotate(-360deg);
+                            }
+                        }
+                        
+                        @keyframes mspin-medium-film {
+                            0% {
+                                transform: translateX(0);
+                            }
+                            100% {
+                                transform: translateX(-11664px);
+                            }
+                        }
+                    </style>
+                </ul>
             </div>
         </div>
     </div>
@@ -65,189 +112,87 @@
             本站已稳定运行 -1 天
         </div>
     </div>
-    <audio src="" autoplay id='audio'></audio>
     <a href=""></a>
 </body>
 <script>
+    var load = "<div class='bg'><div class='mspin'><div><div></div></div></div></div><style>.bg{width:100%;position:relative}.mspin{width:36px;height:36px;overflow:hidden;-webkit-animation:mspin-rotate 1568.63ms infinite linear;-moz-animation:mspin-rotate 1568.63ms infinite linear;animation:mspin-rotate 1568.63ms infinite linear;transform:scale(1.5)translateX(-50%);position:absolute;left:50%}.mspin>div{-webkit-animation:mspin-revrot 5332ms infinite steps(4);-moz-animation:mspin-revrot 5332ms infinite steps(4);animation:mspin-revrot 5332ms infinite steps(4)}.mspin>div>div{background-image:url(https://www.gstatic.com/images/icons/material/anim/mspin/mspin_googcolor_medium.svg);background-size:100%;width:11664px;height:36px;-webkit-animation:mspin-medium-film 5332ms infinite steps(324);-moz-animation:mspin-medium-film 5332ms infinite steps(324);animation:mspin-medium-film 5332ms infinite steps(324)}@keyframes mspin-rotate{0%{transform:rotate(0deg)scale(1.5)}100%{transform:rotate(360deg)scale(1.5)}}@keyframes mspin-revrot{0%{transform:rotate(0deg)}100%{transform:rotate(-360deg)}}@keyframes mspin-medium-film{0%{transform:translateX(0)}100%{transform:translateX(-11664px)}}</style>";
+    var startTime = new Date().getTime();
+    var his = 0;
+    var his2 = 0;
+    var his3 = -1;
+    var hlist = '';
     var aaa = document.querySelectorAll('a');
     aaa[aaa.length - 1].remove();
+    document.getElementById('search_input').value = url.substring(url.indexOf('?s=') + 3, url.length).trim();
+    document.title = '搜索 - ' + url.substring(url.indexOf('?s=') + 3, url.length).trim();
+
+    function callback123(a) {
+        for (var i = 0; i < a.data.info.length; i++) {
+            hlist += "<li data-hash='" + a.data.info[i].hash + "' data-album-id='" + a.data.info[i].album_id + "'>" +
+                "<span class='dot'>" + (i + his + 1) + "</span>" +
+                "<span class='name'>" + a.data.info[i].filename + "</span>" +
+                "</li>";
+        }
+        his = a.data.info.length + his;
+
+        his2++;
+        if (his2 >= his3 + 3 || a.data.info.length == 0) {
+            document.querySelector('.songlist ul').innerHTML = hlist;
+            if (hlist.trim() == '') {
+                document.querySelector('.songlist ul').innerHTML = '什么也没找到';
+            }
+            document.querySelectorAll('.songlist li').forEach(e => {
+                e.onclick = function() {
+                    window.open('song.html?hash=' + this.getAttribute('data-hash') + '&album_id=' + this.getAttribute('data-album-id'));
+                };
+            });
+            var endTime = new Date().getTime() - startTime;
+            console.log('Time:' + endTime + 'ms');
+            his3 = his2 - 1;
+        }
+    }
     document.getElementById('search_start').onclick = function() {
         var a = document.getElementById('search_input').value;
         if (a) {
-            window.open('search.html?s=' + a);
+            window.location.href = 'search.html?s=' + a;
         }
     };
-    fn();
-    var oLRC = {
-        ti: "", //&#27468;&#26354;&#21517;
-        ar: "", //&#28436;&#21809;&#32773;
-        al: "", //&#19987;&#36753;&#21517;
-        by: "", //&#27468;&#35789;&#21046;&#20316;&#20154;
-        offset: 0, //&#26102;&#38388;&#34917;&#20607;&#20540;&#65292;&#21333;&#20301;&#27627;&#31186;&#65292;&#29992;&#20110;&#35843;&#25972;&#27468;&#35789;&#25972;&#20307;&#20301;&#32622;
-        ms: [] //&#27468;&#35789;&#25968;&#32452;{t:&#26102;&#38388;,c:&#27468;&#35789;}
-    };
-    var ys = 73;
-    var nowc = 0;
-
-    function fn() {
-        var url = window.location.href;
-        if (url.indexOf('?hash=') == -1) {
-            window.location.href = 'index.html';
-        }
-        var hash;
-        var auldm;
-        if (url.indexOf('?hash=') != -1) {
-            hash = url.substring(url.indexOf('?hash=') + 6, url.indexOf('&'))
-        };
-        if (url.indexOf('&album_id=') != -1) {
-            auldm = url.substring(url.indexOf('&album_id=') + 10, url.length);
-        };
-        // console.log(hash, auldm, url.indexOf('&author_id='), url.substring(url.indexOf('&author_id=') + 11, url.length), url.indexOf('&author='));
-        var longtime = new Date().getTime();
-        var script = document.createElement('script');
-        script.src = `https://wwwapi.kugou.com/yy/index.php?r=play/getdata&callback=getData&hash=${hash}&dfid=3x7tnx0ml6Ty0CA2IZ4TPrkU&appid=1014&mid=04f5284cfe29a3cf5bc2b7a66a75f5c9&platid=4&album_id=${auldm}&_=${longtime}`;
-        document.querySelector('body').append(script);
-
-    }
-
-    function getData(a) {
-        console.log(a);
-        $('#audio').attr('src', a.data.play_url);
-        $('.bg .right h1.title').html(a.data.song_name);
-        $('.bg .right .message .zhuanj span').append(a.data.album_name);
-        var author_b = '';
-        for (var i = 0; i < a.data.authors.length; i++) {
-            if (i == a.data.authors.length - 1) {
-                author_b += a.data.authors[i].author_name
-            } else {
-                author_b += a.data.authors[i].author_name + '&#12289;';
+    document.getElementById('search_input').onkeydown = function(e) {
+        if (e.key == 'Enter') {
+            var a = this.value;
+            if (a) {
+                window.location.href = 'search.html?s=' + a;
             }
         }
-        $('.bg .right .message .singer span').append(author_b);
-        $('.img_bg').attr('src', a.data.img);
-        createLrcObj(a.data.lyrics);
-        console.log(oLRC);
-        for (var i = 0; i < oLRC.ms.length; i++) {
-            $('.bg .right .gclist ul').append('<li>' + oLRC.ms[i].c + '</li>')
+
+    }
+    for (var i = 1; i < 3; i++) {
+        gets(i);
+    }
+    window.onscroll = function() {
+        var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        var windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
+        var scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        if (scrollTop + windowHeight >= scrollHeight) { //考虑到滚动的位置一般可能会大于一点可滚动的高度，所以这里不能用等于
+            for (var i = his2; i < his2 + 3; i++) {
+                startTime = new Date().getTime();
+                document.querySelector('.songlist ul').innerHTML += load;
+                gets(i);
+            }
         }
-        $('.bg .right .gclist ul li').eq(0).addClass('onc');
-
-
     }
 
-    function download() {
-        window.open($('#audio').attr('src'));
-    }
-    $('.toggleplay').click(function() {
-        var isplay = !document.getElementById('audio').paused;
-        if (isplay) {
-            audio.pause();
-            $(this).addClass('bi-play');
-            $(this).removeClass('bi-pause');
+    function gets(i) {
+        if (his2 == i - 1) {
+            var sc = document.createElement('script');
+            var str = "https://mobiles.kugou.com/api/v3/search/song?format=jsonp&keyword=" + url.substring(url.indexOf('?s=') + 3, url.length).trim() + "&page=" + i + "&pagesize=30&showtype=1&callback=callback123";
+            sc.src = str;
+            document.body.append(sc);
         } else {
-            $(this).removeClass('bi-play');
-            $(this).addClass('bi-pause');
-            audio.play();
+            setTimeout(function() {
+                gets(i);
+            }, 10);
         }
-    });
-    updateTime();
-
-    function updateTime() {
-        setTimeout(() => {
-            var time = parseInt(audio.currentTime);
-            var stime = queryTime(time);
-            var mstime = audio.currentTime;
-            $('div.time span.z').html(stime);
-            $('#timerange').val(time / audio.duration * 100);
-            var nowa = 0;
-            for (var i = 0; i < oLRC.ms.length; i++) {
-                try {
-                    if (parseFloat(oLRC.ms[i].t) <= mstime && parseFloat(oLRC.ms[i + 1].t) > mstime) {
-                        nowa = i;
-                        break;
-                    }
-                } catch (error) {
-                    if (parseFloat(oLRC.ms[i].t) <= mstime) {
-                        nowa = i;
-                        break;
-                    }
-                }
-            }
-            nowc = nowa;
-            var pds = ys - nowc * 41;
-            $('.bg .right .gclist ul li').removeClass('onc');
-            $('.bg .right .gclist ul li').eq(nowc).addClass('onc');
-            $('.bg .right .gclist ul li').css({
-                'top': pds + 'px'
-            });
-            updateTime();
-        }, 1000);
-    }
-
-    function queryTime(a) {
-        var s = parseInt(a % 60);
-        m = parseInt(a / 60);
-        if (s < 10) {
-            s = '0' + s;
-        };
-        if (m < 10) {
-            m = '0' + m;
-        }
-        return m + ':' + s;
-    }
-    var audio = document.getElementById('audio');
-
-    audio.oncanplay = function() {
-        a = queryTime(audio.duration);
-        $('div.time span.s').html(a);
-    }
-    $('#timerange').change(function() {
-        audio.currentTime = ($(this).val() / 100) * document.getElementById('audio').duration;
-    });
-    audio.onended = function() {
-        $('.toggleplay').removeClass('bi-pause');
-        $('.toggleplay').addClass('bi-play');
-        audio.currentTime = 0;
-    }
-
-
-    function createLrcObj(lrc) {
-        if (lrc.length == 0) return;
-        var lrcs = lrc.split('\n');
-        for (var i in lrcs) {
-            lrcs[i] = lrcs[i].replace(/(^\s*)|(\s*$)/g, "");
-            var t = lrcs[i].substring(lrcs[i].indexOf("[") + 1, lrcs[i].indexOf("]"));
-            var s = t.split(":");
-            if (isNaN(parseInt(s[0]))) {
-                for (var i in oLRC) {
-                    if (i != "ms" && i == s[0].toLowerCase()) {
-                        oLRC[i] = s[1];
-                    }
-                }
-            } else { //&#26159;&#25968;&#20540;
-                var arr = lrcs[i].match(/\[(\d+:.+?)\]/g);
-                var start = 0;
-                for (var k in arr) {
-                    start += arr[k].length;
-                }
-                var content = lrcs[i].substring(start);
-                for (var k in arr) {
-                    var t = arr[k].substring(1, arr[k].length - 1);
-                    var s = t.split(":");
-                    oLRC.ms.push({
-                        t: (parseFloat(s[0]) * 60 + parseFloat(s[1])).toFixed(3),
-                        c: content
-                    });
-                }
-            }
-        }
-        oLRC.ms.sort(function(a, b) { //&#25353;&#26102;&#38388;&#39034;&#24207;&#25490;&#24207;
-            return a.t - b.t;
-        });
-        /*
-        for(var i in oLRC){ //&#26597;&#30475;&#35299;&#26512;&#32467;&#26524;
-            console.log(i,":",oLRC[i]);
-        }*/
     }
 </script>
 
